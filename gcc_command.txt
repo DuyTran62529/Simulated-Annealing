@@ -1,0 +1,1 @@
+g++ -std=c++11 SA.cpp CellDistArray.cpp NetMatrix.cpp NetIn.cpp acceptMove.cpp costFunc.cpp moveFunc.cpp 
