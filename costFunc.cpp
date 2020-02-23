@@ -5,20 +5,34 @@
 
 using namespace std;
 
-int costFunc(CellDistArray& Sol, NetMatrix& nmatrix, int cellNum){
+int costFunc(CellDistArray& Sol, NetMatrix& nmatrix, int Cell1, int Cell2){
 
-	int r_start = 0;
-	int cost = 0;
+	int b1 = 0;
+	int c1 = 0;
+	int b2 = 0;
+	int c2 = 0;
 
-	for (int col = 0; col < cellNum - 1; col++){
-		for (int row = r_start; row < cellNum; row++){
-			if (Sol.getCellSet(row) != Sol.getCellSet(col)){
-				cost = cost + nmatrix.getNet(row, col);
+	for (int i = 0; i < nmatrix.getVectorSize(Cell1); i++){
+		if (nmatrix.getNet(Cell1,i) != Cell2){
+			if (Sol.getCellSet(Cell1) != Sol.getCellSet(nmatrix.getNet(Cell1,i))){
+				b1++;
 			}
-		}
-
-		r_start++;
+			else{
+				c1++;
+			}
+		}	
 	}
 
-	return cost;
+	for (int i = 0; i < nmatrix.getVectorSize(Cell2); i++){
+		if (nmatrix.getNet(Cell2,i) != Cell1){
+			if (Sol.getCellSet(Cell2) != Sol.getCellSet(nmatrix.getNet(Cell2,i))){
+				b2++;
+			}
+			else{
+				c2++;
+			}
+		}
+	}
+
+	return b1 - c1 + b2 - c2;
 }

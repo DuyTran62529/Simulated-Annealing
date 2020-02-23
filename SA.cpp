@@ -4,6 +4,7 @@
 #include <chrono>
 #include <random>
 #include <fstream>
+#include <sstream>
 #include "partprogh.h"
 
 using namespace std;
@@ -18,9 +19,10 @@ int main(){
 	NetIn nlist(InFile + ".net");
 
 	int cellNum = nlist.getCellNum();
+	vector<string> netArray = nlist.getNetArray();
 
 	//Generate holding objects
-	NetMatrix nmatrix(nlist.getNetArray(), cellNum, nlist.getNetNum());
+	NetMatrix nmatrix(netArray, cellNum, nlist.getNetNum());
 	CellDistArray c_array(cellNum);
 
 	//Next solution holder
@@ -45,6 +47,20 @@ int main(){
 			cell = dist1(generator);
 		}
 		c_array.setCellSet(cell, 1);
+	}
+
+	//Initial cost
+	int node1;
+	int node2;
+	int cost_cur = 0;
+	for (int i = 0; i < nlist.getNetNum(); i++){
+		istringstream iss(netArray[i]);
+		iss >> node1;
+		iss >> node2;
+
+		if (c_array.getCellSet(node1-1) != c_array.getCellSet(node2-1)){
+				cost_cur++;
+		}
 	}
 
 	//Set initial temperature
@@ -73,35 +89,36 @@ int main(){
 	auto p_start = high_resolution_clock::now();
 
 	//Simulated annealing
-	/*double average_temp_dur = 0;
-	double average_move_dur = 0;*/
+	//double average_temp_dur = 0;
 
 	while (T > T_f){
-		auto t_start = high_resolution_clock::now();
-		int temp_loop_count = 1;
+		/*auto t_start = high_resolution_clock::now();
+		int temp_loop_count = 1;*/
 
 		for (int i = 1; i <= moves; i++){
 
 			auto m_start = high_resolution_clock::now();
 
-			next_sol = moveFunc(c_array, cellNum);
+  			int first_rand = dist1(generator);
+  			int sec_rand = dist1(generator);
 
-			int cost_cur = costFunc(c_array, nmatrix, cellNum);
-			int cost_next = costFunc(next_sol, nmatrix, cellNum);
-			del_cost = cost_next - cost_cur;
+  			while (c_array.getCellSet(first_rand) == c_array.getCellSet(sec_rand)){
+  				sec_rand = dist1(generator);
+  			}
+
+			next_sol = moveFunc(c_array, first_rand, sec_rand);
+
+			del_cost = costFunc(next_sol, nmatrix, first_rand, sec_rand);
 
 			if (acceptMove(del_cost, T)){
-				c_array = next_sol;				
+				c_array = next_sol;
+				cost_cur = cost_cur + del_cost;	
 
-				if (cost_next <= best_sol_cost){
+				if (cost_cur <= best_sol_cost){
 					best_sol = c_array;
-					best_sol_cost = cost_next;
+					best_sol_cost = cost_cur;
 				}
 			}
-
-			/*auto m_stop = high_resolution_clock::now();
-			auto move_dur = duration_cast<microseconds>(m_stop - m_start);
-			average_move_dur = (average_move_dur*(i-1) + move_dur.count())/ i;*/
 		}
 		T = T * drop_rate;
 
@@ -111,11 +128,13 @@ int main(){
 		temp_loop_count++;*/
 	}
 
+	//Stop program clock
+	auto p_stop = high_resolution_clock::now();
+
 	//Output
 	ofstream OutFile (InFile + "_result.txt");
 
 	cout << best_sol_cost << '\n';
-	
 	if (OutFile.is_open()){
 		OutFile << best_sol_cost << '\n';
 	}
@@ -123,7 +142,7 @@ int main(){
 
 	for (int i = 0; i < cellNum; i++){
 		if (best_sol.getCellSet(i) == 0){
-			cout << i + 1 << " ";
+			//cout << i + 1 << " ";
 			
 			if (OutFile.is_open()){
 				OutFile << i + 1 << " ";
@@ -138,7 +157,7 @@ int main(){
 
 	for (int i =0; i < cellNum; i++){
 		if (best_sol.getCellSet(i) == 1){
-			cout << i + 1 << " ";
+			//cout << i + 1 << " ";
 			
 			if (OutFile.is_open()){
 				OutFile << i + 1 << " ";
@@ -148,14 +167,11 @@ int main(){
 
 	if (OutFile.is_open()) OutFile.close();
 
-	//Stop program clock
-	auto p_stop = high_resolution_clock::now();
 	auto p_dur = duration_cast<microseconds>(p_stop - p_start);
 
 	cout << '\n';
-	cout << "Program duration: " << p_dur.count() << " ms \n";
-	/*cout << "Per temp duration: " << average_temp_dur << " ms \n";
-	cout << "Per move duration:  " << average_move_dur << " ms \n";*/
+	cout << "Program duration: " << p_dur.count() << " us \n";
+	//cout << "Per temp duration: " << average_temp_dur << " us \n";
 
 	return 0;
 }

@@ -24,6 +24,7 @@ public:
 	NetMatrix(vector<string>& NetArray, int cellNum, int netNum);
 	~NetMatrix();
 	int getNet(int row, int col);
+	int getVectorSize(int cell);
 
 private:
 	vector< vector<int> > matrix;
@@ -41,9 +42,9 @@ private:
 	vector<bool> CellArray;
 };
 
-CellDistArray moveFunc(CellDistArray Sol, int cellNum);
+CellDistArray moveFunc(CellDistArray Sol, int Cell1, int Cell2);
 
-int costFunc(CellDistArray& Sol, NetMatrix& nmatrix, int cellNum);
+int costFunc(CellDistArray& Sol, NetMatrix& nmatrix, int Cell1, int Cell2);
 
 bool acceptMove(int delCost, double Temp);
 
