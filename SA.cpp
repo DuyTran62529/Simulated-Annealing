@@ -10,12 +10,12 @@
 using namespace std;
 using namespace std::chrono;
 
-int main(){
+int main(int argc, char **argv){
 	
 	//Read in netlist
-	string InFile;
-	cout << "Input file name (don't include .net): ";
-	cin >> InFile;
+	string InFile = argv[1];
+	/*cout << "Input file name (don't include .net): ";
+	cin >> InFile;*/
 	NetIn nlist(InFile + ".net");
 
 	int cellNum = nlist.getCellNum();
@@ -77,24 +77,27 @@ int main(){
 
 	//Set temperature drop rate 
 	double drop_rate;
-	cout << "Cooling rate (0.95 if unsure): ";
+	cout << "Cooling rate (0.998 if unsure): ";
 	cin >> drop_rate;
 
 	//Set number of move per temperature
 	int moves;
-	cout << "Moves per temp (250 if unsure): ";
+	cout << "Moves per temp (500 if unsure): ";
 	cin >> moves;
 
 	//Start program clock 
 	auto p_start = high_resolution_clock::now();
 
 	//Simulated annealing
-	//double average_temp_dur = 0;
+
+	ofstream IterFile ("Iteration.txt");
+	ofstream CostFile ("Cost.txt");
+	ofstream AccMoveFile ("Accepted move.txt");
+	int iter = 0;
+	int acmove;
 
 	while (T > T_f){
-		/*auto t_start = high_resolution_clock::now();
-		int temp_loop_count = 1;*/
-
+		acmove = 0;
 		for (int i = 1; i <= moves; i++){
 
 			auto m_start = high_resolution_clock::now();
@@ -114,6 +117,8 @@ int main(){
 				c_array = next_sol;
 				cost_cur = cost_cur + del_cost;	
 
+				acmove++;
+
 				if (cost_cur <= best_sol_cost){
 					best_sol = c_array;
 					best_sol_cost = cost_cur;
@@ -122,56 +127,50 @@ int main(){
 		}
 		T = T * drop_rate;
 
-		/*auto t_stop = high_resolution_clock::now();
-		auto temp_dur = duration_cast<microseconds>(t_stop - t_start);
-		average_temp_dur = (average_temp_dur*(temp_loop_count-1) + temp_dur.count())/ temp_loop_count;
-		temp_loop_count++;*/
+		if (AccMoveFile.is_open()) AccMoveFile << acmove << '\n';
+		if (CostFile.is_open()) CostFile << cost_cur << '\n';
+		if (IterFile.is_open()) IterFile << iter << '\n';
+
+		iter++;
 	}
 
 	//Stop program clock
 	auto p_stop = high_resolution_clock::now();
 
 	//Output
-	ofstream OutFile (InFile + "_result.txt");
+	string OutName;
+	stringstream ss;
+	ss << argv[2];
+	ss >> OutName;
+	ofstream OutFile (OutName + "_result.txt");
 
 	cout << best_sol_cost << '\n';
+
 	if (OutFile.is_open()){
 		OutFile << best_sol_cost << '\n';
+		for (int i = 0; i < cellNum; i++){
+			if (best_sol.getCellSet(i) == 0){
+				OutFile << i + 1 << " ";
+			}
+		}
+		OutFile << '\n';
+		for (int i = 0; i < cellNum; i++){
+			if (best_sol.getCellSet(i) == 1){
+				OutFile << i + 1 << " ";
+			}
+		}
 	}
 	else cout << "Unable to write file" << '\n';
 
-	for (int i = 0; i < cellNum; i++){
-		if (best_sol.getCellSet(i) == 0){
-			//cout << i + 1 << " ";
-			
-			if (OutFile.is_open()){
-				OutFile << i + 1 << " ";
-			}
-		}
-	}
-
-	cout << '\n';
-	if (OutFile.is_open()){
-		OutFile << '\n';
-	}
-
-	for (int i =0; i < cellNum; i++){
-		if (best_sol.getCellSet(i) == 1){
-			//cout << i + 1 << " ";
-			
-			if (OutFile.is_open()){
-				OutFile << i + 1 << " ";
-			}
-		}
-	}
-
 	if (OutFile.is_open()) OutFile.close();
+	if (AccMoveFile.is_open()) AccMoveFile.close();
+	if (CostFile.is_open()) CostFile.close();
+	if (IterFile.is_open()) IterFile.close();
 
 	auto p_dur = duration_cast<microseconds>(p_stop - p_start);
 
 	cout << '\n';
 	cout << "Program duration: " << p_dur.count() << " us \n";
-	//cout << "Per temp duration: " << average_temp_dur << " us \n";
 
 	return 0;
 }
