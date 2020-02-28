@@ -18,7 +18,7 @@ bool acceptMove(int delCost, double Temp){
 		return true;
 	}
 	else{
-		double boltz = pow(2.72, -(delCost/(2.72*Temp)));
+		double boltz = pow(2.72, -(delCost/(2*Temp)));
 		double r = dist(generator);
 
 		if (r < boltz){

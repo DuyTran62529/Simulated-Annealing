@@ -66,23 +66,23 @@ int main(int argc, char **argv){
 	//Set initial temperature
 	double T_0;
 	double T;
-	cout << "Inital temperature (40000 if unsure): ";
+	cout << "Inital temperature: ";
 	cin >> T_0;
 	T = T_0;
 
 	//Set freezing temperature
 	double T_f;
-	cout << "Freezing temperature (0.1 if unsure): ";
+	cout << "Freezing temperature: ";
 	cin >> T_f;
 
 	//Set temperature drop rate 
 	double drop_rate;
-	cout << "Cooling rate (0.998 if unsure): ";
+	cout << "Cooling rate: ";
 	cin >> drop_rate;
 
 	//Set number of move per temperature
 	int moves;
-	cout << "Moves per temp (500 if unsure): ";
+	cout << "Moves per temp: ";
 	cin >> moves;
 
 	//Start program clock 
